@@ -6,7 +6,9 @@ import datetime
 import pytz
 from datetime import timedelta
 from email.header import decode_header
-from google.oauth2 import service_account
+import pickle
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from bs4 import BeautifulSoup
 
@@ -20,8 +22,28 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in the same directory
 
 def authenticate_google_calendar():
-    """Authenticate and return the Google Calendar service object."""
-    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
+    """Authenticate using OAuth 2.0 and return the Google Calendar service object."""
+    
+    creds = None
+    # Token file stores user's access & refresh tokens
+    if os.path.exists("token.pickle"):
+        with open("token.pickle", "rb") as token:
+            creds = pickle.load(token)
+
+    # If there are no (valid) credentials, authenticate via OAuth
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())  # Refresh token if expired
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+
+        # Save the credentials for future use
+        with open("token.pickle", "wb") as token:
+            pickle.dump(creds, token)
+
     service = build("calendar", "v3", credentials=creds)
     return service
 
