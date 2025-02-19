@@ -71,11 +71,14 @@ def extract_cake_orders():
         print(f"Found {num_emails} emails matching the subject.")
         
         orders = []
+        unprocessed_orders = []  # List to store unprocessed orders
+        
         for email_id in messages[0].split():
             try:
                 status, msg_data = mail.fetch(email_id, "(RFC822)")
                 if status != "OK":
                     print(f"Failed to fetch email {email_id}")
+                    unprocessed_orders.append(email_id)  # Track failed email
                     continue  # Skip to next email if fetching fails
 
                 for response_part in msg_data:
@@ -118,7 +121,7 @@ def extract_cake_orders():
                             pickup_datetime_str, customer_nme = (lambda s: (s.split("\n")[0].strip(), s.split("\n")[1].strip()))(pickup_datetime_str)
                             
                             try:
-                        # Convert to datetime format
+                                # Convert to datetime format
                                 pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
         
@@ -130,11 +133,18 @@ def extract_cake_orders():
                                 })
                             except ValueError:
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                                unprocessed_orders.append(email_id)  # Track failed order
                                 continue
         
             except Exception as e:
                 print(f"Error processing email {email_id}: {e}")
+                unprocessed_orders.append(email_id)  # Track failed email
                     
+        # Debugging: Show unprocessed orders
+        print(f"\nUnprocessed Orders ({len(unprocessed_orders)}):")
+        for email_id in unprocessed_orders:
+            print(f"Failed to process email {email_id}")
+
         return orders
 
     except Exception as e:
@@ -147,7 +157,7 @@ def extract_cake_orders():
             print("Logged out successfully.")
         except Exception as e:
             print(f"Error logging out: {e}")
-        
+
 def count_cake_orders():
     """Count the number of cake orders with the specified subject."""
     try:
