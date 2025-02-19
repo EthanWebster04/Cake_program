@@ -19,8 +19,8 @@ jobs:
           python-version: "3.9"
 
       - name: Install Dependencies
-        run: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-auth google-auth googleapiclient google-api-python-client pandas imapclient beautifulsoup4 lxml
-
+        run: pip install --upgrade google-api-python-client google-auth google-auth-oauthlib google-auth-httplib2 pandas imapclient beautifulsoup4 lxml
+        
       - name: Run Cake Order Script
         env:
           EMAIL_ACCOUNT: ${{ secrets.EMAIL_ACCOUNT }}
