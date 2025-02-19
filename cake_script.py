@@ -86,16 +86,15 @@ def extract_cake_orders():
                             for part in msg.walk():
                                 if part.get_content_type() == "text/plain":
                                     email_body = part.get_payload(decode=True).decode(errors='ignore')
-                                    print(f"Email Body:\n{email_body}")
-                                    break
+                            
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
-                            print(f"Email Body:\n{email_body}")
+                            #print(f"Email Body:\n{email_body}")
 
                         # Extract relevant details
-                        pickup_match = re.search(r"Pick Up Date/Time\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
-                        customer_match = re.search(r"Customer Name\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
-                        cake_match = re.search(r"Cake Type\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
+                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
+                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
+                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
 
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
