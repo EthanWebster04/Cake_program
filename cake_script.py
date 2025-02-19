@@ -1,4 +1,4 @@
-pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas imapclient email6
+pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas imapclient
 
 import imaplib
 import email
