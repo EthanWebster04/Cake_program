@@ -104,6 +104,7 @@ def extract_cake_orders():
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
+                            customer_name = customer_name.split('\n\r\n')[0].strip()
                             cake_type = cake_match.group(1).strip()
                             parts = re.split(r'\s{2,}', cake_type) 
                             cake_type = parts[0].strip()
