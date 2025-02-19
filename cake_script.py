@@ -105,16 +105,24 @@ def extract_cake_orders():
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
                             cake_type = cake_match.group(1).strip()
-
+                        
                             # Clean pickup_datetime_str by removing HTML tags and extra spaces
                             pickup_datetime_str = pickup_datetime_str.replace('<td>', '').replace('</td>', '').strip()
-                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime
-
-                            # Convert to datetime format
-                            pickup_datetime_str, customer_name = (lambda s: (datetime.datetime.strptime(s.split("\n")[0].strip(), "%a %b %d, %Y %I:%M %p"), s.split("\n")[1].strip()))(pickup_datetime_str)
+                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime 
+                        
+                            # Extract the correct date and customer_name
+                            pickup_datetime_str, customer_name = (lambda s: (s.split("\n")[0].strip(), s.split("\n")[1].strip()))(pickup_datetime_str)
+                            
                             try:
+                                # Convert to datetime format
                                 pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
+                                
+                                orders.append({
+                                    "pickup_datetime": pickup_datetime,
+                                    "customer_name": customer_name,
+                                    "cake_type": cake_type
+                                })
                             except ValueError:
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
                                 continue
