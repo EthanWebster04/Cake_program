@@ -11,13 +11,20 @@ from email.header import decode_header
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# Gmail Credentials
-EMAIL_ACCOUNT = "your-email@gmail.com"
-EMAIL_PASSWORD = "your-app-password"
+# Securely access environment variables
+EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
 
 # Google Calendar API Credentials
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in the same directory
+
+def authenticate_google_calendar():
+    """Authenticate and return the Google Calendar service object."""
+    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
+    service = build("calendar", "v3", credentials=creds)
+    return service
 
 def authenticate_google_calendar():
     """Authenticate and return the Google Calendar service object."""
