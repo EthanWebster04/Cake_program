@@ -88,24 +88,45 @@ def extract_cake_orders():
                         msg = email.message_from_bytes(response_part[1])
 
                         # Extract email content
+                        
                         email_body = ""
                         if msg.is_multipart():
                             for part in msg.walk():
                                 if part.get_content_type() == "text/plain":
                                     email_body = part.get_payload(decode=True).decode(errors='ignore')
-                            
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
-
-                        # Extract date using BeautifulSoup to remove any HTML content
+                        
+                        # Debugging: Check the extracted email body
+                        print(f"Email Body:\n{email_body}")
+                        
+                        # Extract text using BeautifulSoup
                         soup = BeautifulSoup(email_body, 'html.parser')
                         text_content = soup.get_text()
-
-                        # Adjust regex to capture just the date/time part
+                        
+                        # Debugging: Check the text content after BeautifulSoup processing
+                        print(f"Text Content:\n{text_content}")
+                        
+                        # Extract relevant details
                         pickup_match = re.search(r"Pick Up Date/Time\s*([\w\s]+? \d{1,2}, \d{4} \d{1,2}:\d{2} [APM]{2})", text_content)
                         customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
                         cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
-
+                        
+                        # Debugging: Check what was matched
+                        if pickup_match:
+                            print(f"Pickup Date: {pickup_match.group(1)}")
+                        else:
+                            print("Pickup Date not found.")
+                            
+                        if customer_match:
+                            print(f"Customer Name: {customer_match.group(1)}")
+                        else:
+                            print("Customer Name not found.")
+                            
+                        if cake_match:
+                            print(f"Cake Type: {cake_match.group(1)}")
+                        else:
+                            print("Cake Type not found.")
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
