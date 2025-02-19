@@ -89,9 +89,8 @@ def extract_cake_orders():
                             
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
-                            #print(f"Email Body:\n{email_body}")
 
-                        # Extract relevant details
+                        # Extract relevant details using regex
                         pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
                         customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
                         cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
@@ -103,6 +102,7 @@ def extract_cake_orders():
 
                             # Convert to datetime format
                             try:
+                                # Adjusted to match the correct format for the date
                                 pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
                             except ValueError:
