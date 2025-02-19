@@ -117,10 +117,11 @@ def extract_cake_orders():
                             pickup_datetime_str, customer_nme = (lambda s: (s.split("\n")[0].strip(), s.split("\n")[1].strip()))(pickup_datetime_str)
                             
                             try:
-                                # Convert to datetime format
+                        # Convert to datetime format
                                 pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
-                                
+        
+                                # Append order to orders list
                                 orders.append({
                                     "pickup_datetime": pickup_datetime,
                                     "customer_name": customer_name,
@@ -129,13 +130,10 @@ def extract_cake_orders():
                             except ValueError:
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
                                 continue
-
-                            
-                            })
-
+        
             except Exception as e:
                 print(f"Error processing email {email_id}: {e}")
-            
+                    
         return orders
 
     except Exception as e:
