@@ -91,7 +91,7 @@ def extract_cake_orders():
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
 
                         # Extract relevant details using regex
-                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
+                        pickup_match = re.search(r"Pick Up Date/Time\s*([^<]*?)(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
                         customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
                         cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
 
