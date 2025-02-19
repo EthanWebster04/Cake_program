@@ -103,10 +103,10 @@ def extract_cake_orders():
                                 "customer_name": customer_name,
                                 "cake_type": cake_type
                             })
-                except Exception as e:
-                    print(f"Error processing email {email_id}: {e}")
+                    except Exception as e:
+                        print(f"Error processing email {email_id}: {e}")
             
-            return orders
+        return orders
 
     except Exception as e:
         print(f"An error occurred: {e}")
