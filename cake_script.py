@@ -50,11 +50,34 @@ def add_event_to_calendar(service, event_details):
     event = service.events().insert(calendarId="primary", body=event).execute()
     print(f"Event created: {event.get('htmlLink')}")
 
-import re
-from bs4 import BeautifulSoup
-import datetime
-import pytz
+def extract_pick_up_datetime(email_body):
+    soup = BeautifulSoup(email_body, 'html.parser')
+    pickup_date_td = soup.find('td', string='Pick Up Date/Time')
+    
+    if pickup_date_td:
+        pickup_date = pickup_date_td.find_next('td').text.strip()
+        
+        # Use regex to match the date and time format
+        pickup_match = re.search(r"(\w{3} \w{3} \d{1,2}, \d{4} @ \d{1,2}:\d{2} [APM]{2})", pickup_date)
+        
+        if pickup_match:
+            pickup_datetime_str = pickup_match.group(1)
+            try:
+                # Convert to datetime format
+                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
+                pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
+                return pickup_datetime
+            except ValueError:
+                print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                return None
+        else:
+            print(f"Skipping order due to invalid date format: {pickup_date}")
+            return None
+    else:
+        print("No 'Pick Up Date/Time' found in email body.")
+        return None
 
+# Define the extract_cake_orders function
 def extract_cake_orders():
     print("Extracting cake orders from Gmail...")
     
@@ -99,50 +122,21 @@ def extract_cake_orders():
                         # Debug: Print the entire email body
                         print(f"Email Body:\n{email_body}")
 
-                        # Use BeautifulSoup to parse the email body
-                        soup = BeautifulSoup(email_body, 'html.parser')
-
-                        # Find the "Pick Up Date/Time" and the following date
-                        pickup_date_td = soup.find('td', string='Pick Up Date/Time')
-                        if pickup_date_td:
-                            pickup_date = pickup_date_td.find_next('td').text.strip()  # Get the date from the next <td> element
-
-                            # Debugging: Print the extracted pickup date
-                            print(f"Extracted Pickup Date: '{pickup_date}'")
-
-                            # Use regex to match the date and time format
-                            pickup_match = re.search(r"(\w{3} \w{3} \d{1,2}, \d{4} @ \d{1,2}:\d{2} [APM]{2})", pickup_date)
-
-                            if pickup_match:
-                                pickup_datetime_str = pickup_match.group(1)
-
-                                # Debugging: Print the pickup datetime string before parsing
-                                print(f"Parsing Pickup Datetime String: '{pickup_datetime_str}'")
-
-                                # Convert to datetime format
-                                try:
-                                    pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
-                                    pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
-
-                                    # Assuming you have other data extraction logic here for customer name and cake type
-                                    customer_name = "Example Customer"  # Extract this similarly
-                                    cake_type = "Example Cake Type"  # Extract this similarly
+                        # Use the extract_pick_up_datetime function to get the pickup date/time
+                        pickup_datetime = extract_pick_up_datetime(email_body)
+                        
+                        if pickup_datetime:
+                            # Assuming you have other data extraction logic here for customer name and cake type
+                            customer_name = "Example Customer"  # Extract this similarly
+                            cake_type = "Example Cake Type"  # Extract this similarly
                                     
-                                    orders.append({
-                                        "pickup_datetime": pickup_datetime,
-                                        "customer_name": customer_name,
-                                        "cake_type": cake_type
-                                    })
-                                    
-                                except ValueError:
-                                    print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
-                                    continue
-                            else:
-                                print(f"Skipping order due to invalid date format: {pickup_date}")
-                                continue
+                            orders.append({
+                                "pickup_datetime": pickup_datetime,
+                                "customer_name": customer_name,
+                                "cake_type": cake_type
+                            })
                         else:
-                            print("No 'Pick Up Date/Time' found in email body.")
-                            continue
+                            print("Skipping order due to invalid pickup date.")
 
             except Exception as e:
                 print(f"Error processing email {email_id}: {e}")
