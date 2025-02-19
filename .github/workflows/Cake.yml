@@ -28,5 +28,4 @@ jobs:
         env:
           EMAIL_ACCOUNT: ${{ secrets.EMAIL_ACCOUNT }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: python cake_script.py
