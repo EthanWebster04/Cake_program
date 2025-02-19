@@ -111,7 +111,7 @@ def extract_cake_orders():
                             pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime
 
                             # Convert to datetime format
-                            pickup_datetime_str, customer_name = (lambda s: (datetime.strptime(s.split("\n")[0].strip(), "%a %b %d, %Y %I:%M %p"), s.split("\n")[1].strip()))(pickup_datetime_str)
+                            pickup_datetime_str, customer_name = (lambda s: (datetime.datetime.strptime(s.split("\n")[0].strip(), "%a %b %d, %Y %I:%M %p"), s.split("\n")[1].strip()))(pickup_datetime_str)
                             try:
                                 pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
