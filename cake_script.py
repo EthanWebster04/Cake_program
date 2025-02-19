@@ -180,7 +180,8 @@ def main():
     if not orders:
         print("No new cake orders found.")
         return
-    print(orders)
+    for order in orders:
+        print(order)
     print(f"Found {len(orders)} orders. Adding to Google Calendar...")
     service = authenticate_google_calendar()
 
