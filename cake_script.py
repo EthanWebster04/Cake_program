@@ -49,22 +49,19 @@ def add_event_to_calendar(service, event_details):
     print(f"Event created: {event.get('htmlLink')}")
 
 def extract_cake_orders():
-    """Extract cake orders from Gmail based on subject and return them as a list of dictionaries."""
+    print("Extracting cake orders from Gmail...")
+    
     try:
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
         mail.select("inbox")
-
-        # Search for emails with the specified subject
+        print("Logged in and inbox selected.")
+        
         subject = "Hawk Delights LLC CAKE ORDER FORM Completed"
         status, messages = mail.search(None, f'SUBJECT "{subject}"')
+        print(f"Found {len(messages[0].split())} emails matching the subject.")
         
-        if status != "OK" or not messages[0]:
-            print(f"No emails found with the subject: {subject}")
-            return []
-
         orders = []
-
         for email_id in messages[0].split():
             try:
                 status, msg_data = mail.fetch(email_id, "(RFC822)")
@@ -106,10 +103,15 @@ def extract_cake_orders():
                                 "customer_name": customer_name,
                                 "cake_type": cake_type
                             })
-            except Exception as e:
-                print(f"Could not read email {email_id}: {e}")
+                except Exception as e:
+                    print(f"Error processing email {email_id}: {e}")
+            
+            return orders
 
-        return orders
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        mail.logout()  # Ensure logout
 
     except Exception as e:
         print(f"An error occurred: {e}")
