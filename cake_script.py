@@ -106,7 +106,29 @@ def extract_cake_orders():
         print(f"An error occurred: {e}")
     finally:
         mail.logout()
+def count_cake_orders():
+    """Count the number of cake orders with the specified subject."""
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
+        mail.select("inbox")
 
+        # Search for emails with the specific subject
+        subject = "Hawk Delights LLC CAKE ORDER FORM Completed"
+        status, messages = mail.search(None, f'SUBJECT "{subject}"')
+
+        # Count the number of matching emails
+        email_count = len(messages[0].split()) if status == "OK" else 0
+
+        return email_count
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0
+
+    finally:
+        mail.logout()  # Ensure logout even if error occurs
+        
 def main():
     """Main function to extract cake orders and add them to Google Calendar."""
     print("Extracting cake orders from Gmail...")
@@ -123,6 +145,9 @@ def main():
         add_event_to_calendar(service, order)
 
     print("All orders have been added to Google Calendar!")
+def main2():
+    print(count_cake_orders())
+    
 
 if __name__ == "__main__":
-    main()
+    main2()
