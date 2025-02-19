@@ -107,12 +107,8 @@ def extract_cake_orders():
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
-                            customer_name = customer_name.split('\n\r\n')[0].strip()
                             cake_type = cake_match.group(1).strip()
-                            parts = re.split(r'\s{2,}', cake_type) 
-                            cake_type = parts[0].strip()
 
-                        
                             # Clean pickup_datetime_str by removing HTML tags and extra spaces
                             pickup_datetime_str = pickup_datetime_str.replace('<td>', '').replace('</td>', '').strip()
                             pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime 
@@ -131,15 +127,15 @@ def extract_cake_orders():
                                     "customer_name": customer_name,
                                     "cake_type": cake_type
                                 })
-                            except ValueError:
-                                print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                            except ValueError as e:
+                                print(f"Skipping order due to invalid date format: {pickup_datetime_str} (Error: {e})")
                                 unprocessed_orders.append(email_id)  # Track failed order
                                 continue
         
             except Exception as e:
                 print(f"Error processing email {email_id}: {e}")
                 unprocessed_orders.append(email_id)  # Track failed email
-                    
+
         # Debugging: Show unprocessed orders
         print(f"\nUnprocessed Orders ({len(unprocessed_orders)}):")
         for email_id in unprocessed_orders:
@@ -157,7 +153,7 @@ def extract_cake_orders():
             print("Logged out successfully.")
         except Exception as e:
             print(f"Error logging out: {e}")
-
+            
 def count_cake_orders():
     """Count the number of cake orders with the specified subject."""
     try:
