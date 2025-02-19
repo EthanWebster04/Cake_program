@@ -160,9 +160,9 @@ def main():
     print("Extracting cake orders from Gmail...")
     orders = extract_cake_orders()
 
-    if not orders:
-        print("No new cake orders found.")
-        return
+    #if not orders:
+        #print("No new cake orders found.")
+       # return
 
     print(f"Found {len(orders)} orders. Adding to Google Calendar...")
     service = authenticate_google_calendar()
