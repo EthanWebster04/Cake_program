@@ -1,12 +1,9 @@
-#pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas imapclient
-
 import imaplib
 import email
 import re
 import os
 import datetime
 import pytz
-import pandas as pd
 from email.header import decode_header
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -15,19 +12,13 @@ from googleapiclient.discovery import build
 EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-
 # Google Calendar API Credentials
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in the same directory
 
 def authenticate_google_calendar():
     """Authenticate and return the Google Calendar service object."""
-    creds = None
-    if os.path.exists("token.json"):
-        creds = service_account.Credentials.from_authorized_user_file("token.json", SCOPES)
-    else:
-        creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
-    
+    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
     service = build("calendar", "v3", credentials=creds)
     return service
 
@@ -100,14 +91,14 @@ def extract_cake_orders():
                             pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
                             pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
                         except ValueError:
-                            pickup_datetime = None
+                            print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                            continue
 
-                        if pickup_datetime:
-                            orders.append({
-                                "pickup_datetime": pickup_datetime,
-                                "customer_name": customer_name,
-                                "cake_type": cake_type
-                            })
+                        orders.append({
+                            "pickup_datetime": pickup_datetime,
+                            "customer_name": customer_name,
+                            "cake_type": cake_type
+                        })
 
         return orders
 
