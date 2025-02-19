@@ -59,12 +59,22 @@ def extract_cake_orders():
         
         subject = "Hawk Delights LLC CAKE ORDER FORM Completed"
         status, messages = mail.search(None, f'SUBJECT "{subject}"')
-        print(f"Found {len(messages[0].split())} emails matching the subject.")
+        
+        # Check if any emails were found
+        num_emails = len(messages[0].split())
+        if num_emails == 0:
+            print(f"No emails found with the subject: {subject}")
+            return []
+
+        print(f"Found {num_emails} emails matching the subject.")
         
         orders = []
         for email_id in messages[0].split():
             try:
                 status, msg_data = mail.fetch(email_id, "(RFC822)")
+                if status != "OK":
+                    print(f"Failed to fetch email {email_id}")
+                    continue  # Skip to next email if fetching fails
 
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
@@ -103,22 +113,23 @@ def extract_cake_orders():
                                 "customer_name": customer_name,
                                 "cake_type": cake_type
                             })
-                    except Exception as e:
-                        print(f"Error processing email {email_id}: {e}")
+
+            except Exception as e:
+                print(f"Error processing email {email_id}: {e}")
             
         return orders
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        mail.logout()  # Ensure logout
 
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
 
     finally:
-        mail.logout()  # Ensure logout even if error occurs
+        try:
+            mail.logout()  # Ensure logout even if error occurs
+            print("Logged out successfully.")
+        except Exception as e:
+            print(f"Error logging out: {e}")
+
         
 def count_cake_orders():
     """Count the number of cake orders with the specified subject."""
