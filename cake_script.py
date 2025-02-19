@@ -7,6 +7,8 @@ import pytz
 from email.header import decode_header
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from bs4 import BeautifulSoup
+
 
 # Securely access environment variables
 EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
@@ -80,20 +82,24 @@ def extract_cake_orders():
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
 
-                        # Extract email content
+                        # Extract email content using BeautifulSoup to handle HTML
                         email_body = ""
                         if msg.is_multipart():
                             for part in msg.walk():
-                                if part.get_content_type() == "text/plain":
+                                if part.get_content_type() == "text/html":  # Get HTML part for better parsing
                                     email_body = part.get_payload(decode=True).decode(errors='ignore')
                             
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
 
-                        # Extract relevant details using regex
-                        pickup_match = re.search(r"Pick Up Date/Time\s*([^<]*?)(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
-                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
-                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", email_body)
+                        # Use BeautifulSoup to clean HTML and extract text
+                        soup = BeautifulSoup(email_body, "html.parser")
+                        clean_text = soup.get_text()
+
+                        # Now use regex on clean text to find the date
+                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
+                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
+                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
 
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
@@ -160,9 +166,9 @@ def main():
     print("Extracting cake orders from Gmail...")
     orders = extract_cake_orders()
 
-    #if not orders:
-        #print("No new cake orders found.")
-       # return
+    if not orders:
+        print("No new cake orders found.")
+        return
 
     print(f"Found {len(orders)} orders. Adding to Google Calendar...")
     service = authenticate_google_calendar()
