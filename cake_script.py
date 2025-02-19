@@ -22,12 +22,6 @@ CREDENTIALS_FILE = "credentials.json"  # Ensure this file is in the same directo
 
 def authenticate_google_calendar():
     """Authenticate and return the Google Calendar service object."""
-    creds = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
-    service = build("calendar", "v3", credentials=creds)
-    return service
-
-def authenticate_google_calendar():
-    """Authenticate and return the Google Calendar service object."""
     creds = None
     if os.path.exists("token.json"):
         creds = service_account.Credentials.from_authorized_user_file("token.json", SCOPES)
