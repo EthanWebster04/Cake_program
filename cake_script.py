@@ -103,7 +103,7 @@ def extract_cake_orders():
 
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
-                            customer_name = customer_match.strip()
+                            customer_name = customer_match.group(1).strip()
                             cake_type = cake_match.group(1).strip()
                             parts = re.split(r'\s{2,}', cake_type) 
                             cake_type = parts[0].strip()
@@ -114,7 +114,7 @@ def extract_cake_orders():
                             pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime 
                         
                             # Extract the correct date and customer_name
-                            pickup_datetime_str, customer_name = (lambda s: (s.split("\n")[0].strip(), s.split("\n")[1].strip()))(pickup_datetime_str)
+                            pickup_datetime_str, customer_nme = (lambda s: (s.split("\n")[0].strip(), s.split("\n")[1].strip()))(pickup_datetime_str)
                             
                             try:
                                 # Convert to datetime format
@@ -130,10 +130,7 @@ def extract_cake_orders():
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
                                 continue
 
-                            orders.append({
-                                "pickup_datetime": pickup_datetime,
-                                "customer_name": customer_name,
-                                "cake_type": cake_type
+                            
                             })
 
             except Exception as e:
