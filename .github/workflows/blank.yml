@@ -22,5 +22,5 @@ jobs:
         run: |
           curl -X POST -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: Bearer ${{ secrets.PAT_SECRET }}" \
-          https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/actions/workflows/target-workflow.yml/dispatches \
+          https://api.github.com/repos/EthanWebster04/Extra/actions/workflows/target-workflow.yml/dispatches \
           -d '{"ref":"main"}'
