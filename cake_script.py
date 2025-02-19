@@ -50,6 +50,11 @@ def add_event_to_calendar(service, event_details):
     event = service.events().insert(calendarId="primary", body=event).execute()
     print(f"Event created: {event.get('htmlLink')}")
 
+import re
+from bs4 import BeautifulSoup
+import datetime
+import pytz
+
 def extract_cake_orders():
     print("Extracting cake orders from Gmail...")
     
@@ -96,8 +101,8 @@ def extract_cake_orders():
                         soup = BeautifulSoup(email_body, 'html.parser')
                         text_content = soup.get_text()
 
-                        # Extract pickup date/time using regex
-                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
+                        # Adjust regex to capture just the date/time part
+                        pickup_match = re.search(r"Pick Up Date/Time\s*([\w\s]+? \d{1,2}, \d{4} \d{1,2}:\d{2} [APM]{2})", text_content)
                         customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
                         cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
 
@@ -106,13 +111,12 @@ def extract_cake_orders():
                             customer_name = customer_match.group(1).strip()
                             cake_type = cake_match.group(1).strip()
 
-                            # Clean pickup_datetime_str by removing HTML tags and extra spaces
-                            pickup_datetime_str = pickup_datetime_str.replace('<td>', '').replace('</td>', '').strip()
-                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime
+                            # Clean up pickup_datetime_str and remove unnecessary parts
+                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ").replace(",", "")  # Clean format
 
                             # Convert to datetime format
                             try:
-                                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
+                                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
                             except ValueError:
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
@@ -139,7 +143,6 @@ def extract_cake_orders():
             print("Logged out successfully.")
         except Exception as e:
             print(f"Error logging out: {e}")
-
         
 def count_cake_orders():
     """Count the number of cake orders with the specified subject."""
