@@ -59,57 +59,62 @@ def add_event_to_calendar(service, event_details):
 
 def extract_cake_orders():
     """Extract cake orders from Gmail and return them as a list of dictionaries."""
-    mail = imaplib.IMAP4_SSL("imap.gmail.com")
-    mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
-    mail.select("inbox")
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
+        mail.select("inbox")
 
-    # Search for emails from Jolt (info@joltup.com)
-    status, messages = mail.search(None, 'FROM "info@joltup.com"')
-    orders = []
+        # Search for emails from Jolt (info@joltup.com)
+        status, messages = mail.search(None, 'FROM "info@joltup.com"')
+        orders = []
 
-    for email_id in messages[0].split():
-        status, msg_data = mail.fetch(email_id, "(RFC822)")
+        for email_id in messages[0].split():
+            status, msg_data = mail.fetch(email_id, "(RFC822)")
 
-        for response_part in msg_data:
-            if isinstance(response_part, tuple):
-                msg = email.message_from_bytes(response_part[1])
+            for response_part in msg_data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
 
-                # Extract email content
-                email_body = ""
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        if part.get_content_type() == "text/plain":
-                            email_body = part.get_payload(decode=True).decode()
-                            break
-                else:
-                    email_body = msg.get_payload(decode=True).decode()
+                    # Extract email content
+                    email_body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain":
+                                email_body = part.get_payload(decode=True).decode(errors='ignore')
+                                break
+                    else:
+                        email_body = msg.get_payload(decode=True).decode(errors='ignore')
 
-                # Extract relevant details
-                pickup_match = re.search(r"Pick Up Date/Time\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
-                customer_match = re.search(r"Customer Name\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
-                cake_match = re.search(r"Cake Type\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
+                    # Extract relevant details
+                    pickup_match = re.search(r"Pick Up Date/Time\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
+                    customer_match = re.search(r"Customer Name\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
+                    cake_match = re.search(r"Cake Type\s*(.*?)\s*\w+\s*\d{1,2}/\d{1,2}/\d{2,4}", email_body)
 
-                if pickup_match and customer_match and cake_match:
-                    pickup_datetime_str = pickup_match.group(1).strip()
-                    customer_name = customer_match.group(1).strip()
-                    cake_type = cake_match.group(1).strip()
+                    if pickup_match and customer_match and cake_match:
+                        pickup_datetime_str = pickup_match.group(1).strip()
+                        customer_name = customer_match.group(1).strip()
+                        cake_type = cake_match.group(1).strip()
 
-                    # Convert to datetime format
-                    try:
-                        pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
-                        pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
-                    except ValueError:
-                        pickup_datetime = None
+                        # Convert to datetime format
+                        try:
+                            pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
+                            pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
+                        except ValueError:
+                            pickup_datetime = None
 
-                    if pickup_datetime:
-                        orders.append({
-                            "pickup_datetime": pickup_datetime,
-                            "customer_name": customer_name,
-                            "cake_type": cake_type
-                        })
+                        if pickup_datetime:
+                            orders.append({
+                                "pickup_datetime": pickup_datetime,
+                                "customer_name": customer_name,
+                                "cake_type": cake_type
+                            })
 
-    mail.logout()
-    return orders
+        return orders
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        mail.logout()
 
 def main():
     """Main function to extract cake orders and add them to Google Calendar."""
