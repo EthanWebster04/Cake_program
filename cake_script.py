@@ -82,34 +82,37 @@ def extract_cake_orders():
                     if isinstance(response_part, tuple):
                         msg = email.message_from_bytes(response_part[1])
 
-                        # Extract email content using BeautifulSoup to handle HTML
+                        # Extract email content
                         email_body = ""
                         if msg.is_multipart():
                             for part in msg.walk():
-                                if part.get_content_type() == "text/html":  # Get HTML part for better parsing
+                                if part.get_content_type() == "text/plain":
                                     email_body = part.get_payload(decode=True).decode(errors='ignore')
                             
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
 
-                        # Use BeautifulSoup to clean HTML and extract text
-                        soup = BeautifulSoup(email_body, "html.parser")
-                        clean_text = soup.get_text()
+                        # Extract date using BeautifulSoup to remove any HTML content
+                        soup = BeautifulSoup(email_body, 'html.parser')
+                        text_content = soup.get_text()
 
-                        # Now use regex on clean text to find the date
-                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
-                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
-                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", clean_text)
+                        # Extract pickup date/time using regex
+                        pickup_match = re.search(r"Pick Up Date/Time\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
+                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
+                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
 
                         if pickup_match and customer_match and cake_match:
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
                             cake_type = cake_match.group(1).strip()
 
+                            # Clean pickup_datetime_str by removing HTML tags and extra spaces
+                            pickup_datetime_str = pickup_datetime_str.replace('<td>', '').replace('</td>', '').strip()
+                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ")  # Remove '@' for clean datetime
+
                             # Convert to datetime format
                             try:
-                                # Adjusted to match the correct format for the date
-                                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
+                                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y %I:%M %p")
                                 pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
                             except ValueError:
                                 print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
