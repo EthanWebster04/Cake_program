@@ -24,7 +24,6 @@ jobs:
 
 
       - name: Create credentials.json file
-        run: echo '${{ secrets.CREDENTIALS_JSON}}' > credentials.json
 
       - name: Run Cake Order Script
         env:
