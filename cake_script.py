@@ -105,7 +105,9 @@ def extract_cake_orders():
                             pickup_datetime_str = pickup_match.group(1).strip()
                             customer_name = customer_match.group(1).strip()
                             cake_type = cake_match.group(1).strip()
-                            cake_type = re.sub(r'[\n\r]+', ' ', cake_type).strip()
+                            parts = re.split(r'\s{2,}', cake_type) 
+                            cake_type = parts[0].strip()
+
                         
                             # Clean pickup_datetime_str by removing HTML tags and extra spaces
                             pickup_datetime_str = pickup_datetime_str.replace('<td>', '').replace('</td>', '').strip()
