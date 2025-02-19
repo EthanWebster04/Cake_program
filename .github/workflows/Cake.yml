@@ -19,7 +19,8 @@ jobs:
           python-version: "3.9"
 
       - name: Install Dependencies
-        run: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas imapclient
+        run: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client pandas imapclient beautifulsoup4 lxml
+
 
 
       - name: Create credentials.json file
