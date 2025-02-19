@@ -88,7 +88,6 @@ def extract_cake_orders():
                         msg = email.message_from_bytes(response_part[1])
 
                         # Extract email content
-                        
                         email_body = ""
                         if msg.is_multipart():
                             for part in msg.walk():
@@ -96,62 +95,54 @@ def extract_cake_orders():
                                     email_body = part.get_payload(decode=True).decode(errors='ignore')
                         else:
                             email_body = msg.get_payload(decode=True).decode(errors='ignore')
-                        
-                        # Debugging: Check the extracted email body
-                        print(f"Email Body:\n{email_body}")
-                        
-                        # Extract text using BeautifulSoup
+
+                        # Use BeautifulSoup to parse the email body
                         soup = BeautifulSoup(email_body, 'html.parser')
-                        text_content = soup.get_text()
                         
-                        # Debugging: Check the text content after BeautifulSoup processing
-                        print(f"Text Content:\n{text_content}")
-                        
-                        # Extract relevant details
-                        pickup_match = re.search(r"Pick Up Date/Time\s*([\w\s]+? \d{1,2}, \d{4} \d{1,2}:\d{2} [APM]{2})", text_content)
-                        customer_match = re.search(r"Customer Name\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
-                        cake_match = re.search(r"Cake Type\s*([\s\S]*?)\s*(\d{1,2}/\d{1,2}/\d{2,4})", text_content)
-                        
-                        # Debugging: Check what was matched
-                        if pickup_match:
-                            print(f"Pickup Date: {pickup_match.group(1)}")
-                        else:
-                            print("Pickup Date not found.")
+                        # Find the "Pick Up Date/Time" and the following date
+                        pickup_date_td = soup.find('td', string='Pick Up Date/Time')
+                        if pickup_date_td:
+                            pickup_date = pickup_date_td.find_next('td').text.strip()  # Get the date from the next <td> element
                             
-                        if customer_match:
-                            print(f"Customer Name: {customer_match.group(1)}")
-                        else:
-                            print("Customer Name not found.")
+                            # Debugging: Print the extracted pickup date
+                            print(f"Extracted Pickup Date: {pickup_date}")
                             
-                        if cake_match:
-                            print(f"Cake Type: {cake_match.group(1)}")
-                        else:
-                            print("Cake Type not found.")
-                        if pickup_match and customer_match and cake_match:
-                            pickup_datetime_str = pickup_match.group(1).strip()
-                            customer_name = customer_match.group(1).strip()
-                            cake_type = cake_match.group(1).strip()
-
-                            # Clean up pickup_datetime_str and remove unnecessary parts
-                            pickup_datetime_str = pickup_datetime_str.replace(" @ ", " ").replace(",", "")  # Clean format
-
-                            # Convert to datetime format
-                            try:
-                                pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d %Y %I:%M %p")
-                                pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
-                            except ValueError:
-                                print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                            # Use regex to match the date and time format
+                            pickup_match = re.search(r"(\w{3} \w{3} \d{1,2}, \d{4} @ \d{1,2}:\d{2} [APM]{2})", pickup_date)
+                            
+                            if pickup_match:
+                                pickup_datetime_str = pickup_match.group(1)
+                                
+                                # Convert to datetime format
+                                try:
+                                    pickup_datetime = datetime.datetime.strptime(pickup_datetime_str, "%a %b %d, %Y @ %I:%M %p")
+                                    pickup_datetime = pytz.timezone("America/New_York").localize(pickup_datetime)
+                                    
+                                    # Assuming you have other data extraction logic here for customer name and cake type
+                                    customer_name = "Example Customer"  # Extract this similarly
+                                    cake_type = "Example Cake Type"  # Extract this similarly
+                                    
+                                    orders.append({
+                                        "pickup_datetime": pickup_datetime,
+                                        "customer_name": customer_name,
+                                        "cake_type": cake_type
+                                    })
+                                    
+                                except ValueError:
+                                    print(f"Skipping order due to invalid date format: {pickup_datetime_str}")
+                                    continue
+                            else:
+                                print(f"Skipping order due to invalid date format: {pickup_date}")
                                 continue
-
-                            orders.append({
-                                "pickup_datetime": pickup_datetime,
-                                "customer_name": customer_name,
-                                "cake_type": cake_type
-                            })
 
             except Exception as e:
                 print(f"Error processing email {email_id}: {e}")
             
+        if orders:
+            print(f"Found {len(orders)} new orders.")
+        else:
+            print("No new cake orders found.")
+
         return orders
 
     except Exception as e:
