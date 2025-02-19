@@ -4,6 +4,7 @@ import re
 import os
 import datetime
 import pytz
+from datetime import timedelta
 from email.header import decode_header
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -28,7 +29,6 @@ def add_event_to_calendar(service, event_details):
     """Create an event in Google Calendar."""
     event = {
         "summary": f"Cake Pickup for {event_details['customer_name']}",
-        "location": "Hawk Delights LLC",
         "description": f"Cake Order: {event_details['cake_type']}",
         "start": {
             "dateTime": event_details["pickup_datetime"].isoformat(),
@@ -147,29 +147,6 @@ def extract_cake_orders():
             print("Logged out successfully.")
         except Exception as e:
             print(f"Error logging out: {e}")
-            
-def count_cake_orders():
-    """Count the number of cake orders with the specified subject."""
-    try:
-        mail = imaplib.IMAP4_SSL("imap.gmail.com")
-        mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
-        mail.select("inbox")
-
-        # Search for emails with the specific subject
-        subject = "Hawk Delights LLC CAKE ORDER FORM Completed"
-        status, messages = mail.search(None, f'SUBJECT "{subject}"')
-
-        # Count the number of matching emails
-        email_count = len(messages[0].split()) if status == "OK" else 0
-
-        return email_count
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return 0
-
-    finally:
-        mail.logout()  # Ensure logout even if error occurs
         
 def main():
     """Main function to extract cake orders and add them to Google Calendar."""
